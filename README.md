@@ -1,4 +1,4 @@
-# Process method 
+# Brief Process 
 
 1. raw_data_processing
 
@@ -47,7 +47,5 @@ https://openaccess.thecvf.com/content_cvpr_2018_workshops/w4/html/Zhou_D-LinkNet
 4. Post processing with laplacian of gaussian to smooth results
 
 5. Get target border line and central line based on Segmentation Results
-
-
 
 
