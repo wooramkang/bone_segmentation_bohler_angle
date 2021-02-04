@@ -5,8 +5,8 @@ from PIL import Image, ImageOps
 import numpy as np
 import cv2
 
-pat_dir = "iiml_mura/MURA-v1.1/train/"
-train_image_dir = "/project/SEMINAR/MURA-v1.1/train/"
+pat_dir = "ano_mura/MURA-v1.1/train/"
+train_image_dir = "MURA-v1.1/train/"
 patname = os.listdir(pat_dir)
 save_image_dir = "train_image/"
 save_label_dir = "label_image/"
