@@ -9,6 +9,8 @@ import numpy as np
 import random
 from time import time
 from PIL import Image
+from networks.unet import Unet
+from networks.dunet import Dunet
 from networks.dinknet import LinkNet34, DinkNet34, DinkNet50, DinkNet101, DinkNet34_less_pool
 from framework import MyFrame
 from loss import dice_bce_loss
@@ -75,8 +77,10 @@ print("load trained model")
 
 raw_imgdir = "../dataset/"+target+"/img/"
 file_list = os.listdir(raw_imgdir)
+#Test image list
 
 for i in file_list:
+
     map_run_time = time()
     src = cv2.imread(raw_imgdir + i, cv2.IMREAD_COLOR)
     src = cv2.resize(src, (512, 512))
@@ -118,7 +122,8 @@ for i in file_list:
     final_output.paste(t_out, (0,0))#, 1024, 1024))    
     RESULT_OUT_DIR = os.path.join(RESULT_DIR, 'result_' + i[:-4] +'.jpg')
     final_output.save(RESULT_OUT_DIR)
-    
+    #segmentation results - final_output
+        
     filter_list = [1, 2, 3, 3]
     smoothing_iter = 2
     sharpening_iter = 2
@@ -134,6 +139,8 @@ for i in file_list:
 
     RESULT_OUT_DIR = os.path.join(RESULT_DIR, 'result_' + i[:-4] +'_post.jpg')
     cv2.imwrite(RESULT_OUT_DIR, dst)    
+    #post processing resutls - dst
+
     result_img = dst.copy()
 
     dst[dst == 255] = True
@@ -181,6 +188,8 @@ for i in file_list:
 
     print((starting, top_end))
     pos = []
+    # joint line points -- pos
+
     pos.append((top_end, starting))
     if( abs(top_end - left_end) < abs(top_end - right_end) ):
         print( (right_end, right_top) )
@@ -195,27 +204,46 @@ for i in file_list:
     #RESULT_OUT_DIR = os.path.join(RESULT_DIR, 'result_' + i[:-4] +'_post_line.jpg')
     #cv2.imwrite(RESULT_OUT_DIR, result_img)    
 
-    left_end = dst.shape[0] -1
+    left_end = (dst.shape[0] -1)
     left_top = 0
     right_end = 0
     right_top = 0
-        
-    for kk in range(dst.shape[1]):
-        if dst[ending-1, kk].all():
-            if kk < left_end:
-                left_end = kk
-                left_top = ending -1
-            if kk > right_end:
-                right_end = kk
-                right_top = ending -1
 
     pos_prime = []
+    # central line points -- pos
+
+    ending__ = int(starting - (starting - ending) * 1/4)
+    for kk in range(dst.shape[1] ):
+        if dst[ending__-1, kk].all():
+            if kk < left_end:
+                left_end = kk
+                left_top = ending__ -1
+            if kk > right_end:
+                right_end = kk
+                right_top = ending__ -1
+
+    pos_prime.append( ( int((left_end + right_end)/2) , ending__ ) )
     
-    pos_prime.append(( int((pos[0][0] + pos[1][0])/2) , int((pos[0][1] + pos[1][1])/2)  ))
-    pos_prime.append( ( int((left_end + right_end)/2) , ending ) )
+    left_end = (dst.shape[0] -1)
+    left_top = 0
+    right_end = 0
+    right_top = 0
+    
+    ending__ = int(starting - (starting - ending) * 3/4)
+    for kk in range(dst.shape[1] ):
+        if dst[ending__-1, kk].all():
+            if kk < left_end:
+                left_end = kk
+                left_top = ending__ -1
+            if kk > right_end:
+                right_end = kk
+                right_top = ending__ -1
+
+    #pos_prime.append(( int((pos[0][0] + pos[1][0])/2) , int((pos[0][1] + pos[1][1])/2)  ))
+    pos_prime.append( ( int((left_end + right_end)/2) , ending__ ) )
+
     print(pos_prime)
     
-
     pos_prime_v = np.array([pos_prime[0][0] - pos_prime[1][0], pos_prime[0][1] - pos_prime[1][1]] )
     pos_v = np.array( [pos[0][0] - pos[1][0], pos[0][1] - pos[1][1]] )
     print( pos_prime_v)
@@ -232,6 +260,7 @@ for i in file_list:
     result_img = cv2.line(result_img, pos_prime[0], pos_prime[1], (0, 255, 0), 3)
     RESULT_OUT_DIR = os.path.join(RESULT_DIR, 'result_' + i[:-4] +'_post_line.jpg')
     cv2.imwrite(RESULT_OUT_DIR, result_img)    
+    # final results with lines
 
     print("inference running time")
     print(time() - map_run_time)
